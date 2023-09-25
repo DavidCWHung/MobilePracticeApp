@@ -6,13 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.example.mypracticeapplication.ui.theme.MyPracticeApplicationTheme
@@ -36,7 +35,6 @@ data class Post(
 // Define your Retrofit API service interface.
 interface ApiService {
     @GET("apod")
-//    suspend fun getPosts(): Response<List<Post>> // Note the Response wrapper.
     suspend fun getPosts(
         @Query("api_key") apiKey: String,
         @Query("start_date") startDate: String
@@ -65,47 +63,41 @@ fun MyApp() {
 
             if (response.isSuccessful) {
                 posts = response.body() ?: emptyList()
-                Log.d("ABC", "Posts size: ${posts.size}")
-                Log.d("ABC", "$posts")
             } else {
                 // Handle API error here
-                Log.d("ABC", "Posts size: ${posts.size}")
-                Log.d("ABC", "$posts")
-                Log.d("ABC", "Failed to retrieve!")
+                Log.d("MyApp", "Failed to retrieve!")
             }
         }
     }
 
     // Display the list of posts
-    Column(
+    LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        BasicTextField(
-            value = "",
-            onValueChange = { /* TODO: Implement search */ },
+        items(posts) { post ->
+            PostCard(post)
+        }
+    }
+}
+@Composable
+fun PostCard(post: Post) {
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(5.dp)
+    ) {
+        Column(
             modifier = Modifier.padding(16.dp)
-        )
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
         ) {
-            items(posts) { post ->
-                Column {
-                    Text(text = post.title)
-                    if(post.copyright != null) {
-                        Text(text = post.copyright)
-                    }
-//                    Text(text = post.url)
-                    AsyncImage(
-                        model = post.url,
-                        contentDescription = post.title
-                    )
-                    Divider()
-
-
-                }
-
+            Text(text = post.title, fontWeight = FontWeight.Bold)
+            if (post.copyright != null) {
+                Text(text = post.copyright)
             }
+            AsyncImage(
+                model = post.url,
+                contentDescription = post.title
+            )
         }
     }
 }
@@ -123,7 +115,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyPracticeApplicationTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
